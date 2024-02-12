@@ -19,6 +19,7 @@
     "@tanstack/react-query-devtools": "^4.35.7",
     "appwrite": "^13.0.1",
     "attr-accept": "^2.2.2",
+    "axios": "^1.6.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "eslint-config-prettier": "^9.0.0",

@@ -1,3 +1,6 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -9,29 +12,56 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { SignInValidation } from "@/lib/validation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
 import { z } from "zod";
-
+import { Loader } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  useCreateUserAccount,
+  useSignInAccount,
+} from "@/lib/react-query/queriesAndMutations";
+import { useUserContext } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const SignInForm = () => {
-  const isLoading = false;
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { mutateAsync: signInAccount, isLoading: isSigningIn } =
+    useSignInAccount();
+
+  const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
   // 1. Define your form.
   const form = useForm<z.infer<typeof SignInValidation>>({
     resolver: zodResolver(SignInValidation),
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
     },
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof SignInValidation>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof SignInValidation>) {
+    const session = await signInAccount({
+      email: values.email,
+      password: values.password,
+    });
+
+    if (!session) {
+      return toast({
+        title: "Sign in failed. Please try again!",
+      });
+    }
+
+    const isLoggedIn = await checkAuthUser();
+
+    if (isLoggedIn) {
+      form.reset();
+      navigate("/");
+    } else {
+      return toast({
+        title: "Sign in failed. Please try again!",
+      });
+    }
   }
   return (
     <Form {...form}>
@@ -47,14 +77,14 @@ const SignInForm = () => {
         >
           <FormField
             control={form.control}
-            name="username"
+            name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="text" className="shad-input" {...field} />
+                  <Input type="email" className="shad-input" {...field} />
                 </FormControl>
-                <FormMessage className="text-rose-600"/>
+                <FormMessage className="text-rose-600" />
               </FormItem>
             )}
           />
@@ -72,7 +102,7 @@ const SignInForm = () => {
             )}
           />
           <Button type="submit" className="shad-button_primary">
-            {isLoading ? (
+            {isSigningIn ? (
               <div className="flex">
                 <Loader /> Loading...
               </div>
@@ -80,8 +110,15 @@ const SignInForm = () => {
               "Login"
             )}
           </Button>
-          <p className="text-small-primary text-center">Didn't have an account?
-            <Link to="/sign-up" className="text-primary-500 text-small-semibold"> Sign Up</Link>
+          <p className="text-small-primary text-center">
+            Didn't have an account?
+            <Link
+              to="/sign-up"
+              className="text-primary-500 text-small-semibold"
+            >
+              {" "}
+              Sign Up
+            </Link>
           </p>
         </form>
       </div>

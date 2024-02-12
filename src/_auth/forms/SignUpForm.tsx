@@ -15,10 +15,23 @@ import { SignUpValidation } from "@/lib/validation";
 import { z } from "zod";
 import { Loader } from "lucide-react";
 import { Link } from "react-router-dom";
-import { createUserAccount } from "@/lib/appwrite/api";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  useCreateUserAccount,
+  useSignInAccount,
+} from "@/lib/react-query/queriesAndMutations";
+import { useUserContext } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const SignUpForm = () => {
-  const isLoading = false;
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { mutateAsync: createUserAccount, isLoading: isCreatingUser } =
+    useCreateUserAccount();
+  const { mutateAsync: signInAccount, isLoading: isSigningIn } =
+    useSignInAccount();
+
+  const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
   // 1. Define your form.
   const form = useForm<z.infer<typeof SignUpValidation>>({
     resolver: zodResolver(SignUpValidation),
@@ -31,12 +44,36 @@ const SignUpForm = () => {
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof SignUpValidation>) {
-    const newUser = createUserAccount(values)
-    if(newUser){
-      alert("Registration successful!");
-      console.log(newUser);
+  async function onSubmit(values: z.infer<typeof SignUpValidation>) {
+    const newUser = await createUserAccount(values);
+    console.log(newUser);
+    if (!newUser) {
+      return toast({
+        title: "Sign up failed, please try again!",
+      });
+    }
+
+    // const session = await signInAccount({
+    //   email: values.email,
+    //   password: values.password,
+    // });
+
+    // if (!session) {
+    //   return toast({
+    //     title: "Sign in failed. Please try again!",
+    //   });
+    // }
+
+    const isLoggedIn = await checkAuthUser();
+
+    if(isLoggedIn){
       form.reset();
+      navigate('/');
+    }
+    else {
+      return toast({
+        title: "Sign in failed. Please try again!",
+      });
     }
   }
 
@@ -50,7 +87,8 @@ const SignUpForm = () => {
         </p>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col w-full gap-5 mt-4">
+          className="flex flex-col w-full gap-5 mt-4"
+        >
           <FormField
             control={form.control}
             name="name"
@@ -60,7 +98,7 @@ const SignUpForm = () => {
                 <FormControl>
                   <Input type="text" className="shad-input" {...field} />
                 </FormControl>
-                <FormMessage className="text-rose-600"/>
+                <FormMessage className="text-rose-600" />
               </FormItem>
             )}
           />
@@ -73,7 +111,7 @@ const SignUpForm = () => {
                 <FormControl>
                   <Input type="text" className="shad-input" {...field} />
                 </FormControl>
-                <FormMessage className="text-rose-600"/>
+                <FormMessage className="text-rose-600" />
               </FormItem>
             )}
           />
@@ -86,7 +124,7 @@ const SignUpForm = () => {
                 <FormControl>
                   <Input type="email" className="shad-input" {...field} />
                 </FormControl>
-                <FormMessage className="text-rose-600"/>
+                <FormMessage className="text-rose-600" />
               </FormItem>
             )}
           />
@@ -99,20 +137,28 @@ const SignUpForm = () => {
                 <FormControl>
                   <Input type="password" className="shad-input" {...field} />
                 </FormControl>
-                <FormMessage className="text-rose-600"/>
+                <FormMessage className="text-rose-600" />
               </FormItem>
             )}
           />
           <Button type="submit" className="shad-button_primary ">
-            {isLoading ? 
-              (<div className="flex-center gap-2">
-                <Loader/> Loading...
-              </div>) : "Sign Up"
-            }
+            {isCreatingUser ? (
+              <div className="flex-center gap-2">
+                <Loader /> Loading...
+              </div>
+            ) : (
+              "Sign Up"
+            )}
           </Button>
           <p className="text-small-regular text-light-2 text-center ">
             Already have an account?
-            <Link to='/sign-in' className="text-primary-500 text-small-semibold"> Log In</Link>
+            <Link
+              to="/sign-in"
+              className="text-primary-500 text-small-semibold"
+            >
+              {" "}
+              Log In
+            </Link>
           </p>
         </form>
       </div>
