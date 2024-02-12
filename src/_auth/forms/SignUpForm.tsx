@@ -15,6 +15,7 @@ import { SignUpValidation } from "@/lib/validation";
 import { z } from "zod";
 import { Loader } from "lucide-react";
 import { Link } from "react-router-dom";
+import { createUserAccount } from "@/lib/appwrite/api";
 
 const SignUpForm = () => {
   const isLoading = false;
@@ -31,9 +32,12 @@ const SignUpForm = () => {
 
   // 2. Define a submit handler.
   function onSubmit(values: z.infer<typeof SignUpValidation>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+    const newUser = createUserAccount(values)
+    if(newUser){
+      alert("Registration successful!");
+      console.log(newUser);
+      form.reset();
+    }
   }
 
   return (
