@@ -13,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { SignUpValidation } from "@/lib/validation";
 import { z } from "zod";
-import { Loader } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -22,6 +21,7 @@ import {
 } from "@/lib/react-query/queriesAndMutations";
 import { useUserContext } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Loader from "@/components/shared/Loader";
 
 const SignUpForm = () => {
   const { toast } = useToast();

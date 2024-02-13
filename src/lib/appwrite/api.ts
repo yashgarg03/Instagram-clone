@@ -69,7 +69,7 @@ export async function getCurrentUser() {
     const currentUser = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.userCollectionId,
-      [Query.equal("accountId", "currentAccount.$id")]
+      [Query.equal("accountId", currentAccount.$id)]
     );
 
     if(!currentUser) throw Error;
@@ -78,5 +78,15 @@ export async function getCurrentUser() {
     
   } catch (error) {
     console.log(error);
+  }
+}
+
+export async function signOutAccount(user: { email: string; password: string }) {
+  try {
+    const session = await account.deleteSession("current");
+    return session;
+  } catch (error) {
+    console.log(error);
+    return error;
   }
 }

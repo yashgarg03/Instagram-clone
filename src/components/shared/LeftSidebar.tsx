@@ -1,32 +1,27 @@
+import { sidebarLinks } from "@/constants";
+import { useUserContext } from "@/context/AuthContext";
+import { useSignOutAccount } from "@/lib/react-query/queriesAndMutations";
+import { INavLink } from "@/types";
+import { useEffect } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
-import { INavLink } from "@/types";
-import { sidebarLinks } from "@/constants";
-import { Loader } from "@/components/shared";
-import { Button } from "@/components/ui/button";
-import { useSignOutAccount } from "@/lib/react-query/queries";
-import { useUserContext, INITIAL_USER } from "@/context/AuthContext";
-
 const LeftSidebar = () => {
+  const { pathName }: any = useLocation();
+  const { user }: any = useUserContext();
+  const { mutate: signOut, isSuccess } = useSignOutAccount();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const { user, setUser, setIsAuthenticated, isLoading } = useUserContext();
 
-  const { mutate: signOut } = useSignOutAccount();
+  console.log(user);
 
-  const handleSignOut = async (
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {
-    e.preventDefault();
-    signOut();
-    setIsAuthenticated(false);
-    setUser(INITIAL_USER);
-    navigate("/sign-in");
-  };
+  useEffect(() => {
+    if (isSuccess) {
+      navigate("/sign-in");
+    }
+  }, [isSuccess]);
 
   return (
-    <nav className="leftsidebar">
-      <div className="flex flex-col gap-11">
+    <nav className="leftSideBar">
+      <div className="flex flex-col gap-11 p-5">
         <Link to="/" className="flex gap-3 items-center">
           <img
             src="/assets/images/logo.svg"
@@ -36,44 +31,30 @@ const LeftSidebar = () => {
           />
         </Link>
 
-        {isLoading || !user.email ? (
-          <div className="h-14">
-            <Loader />
+        <Link to={`/profile/${user.id}`} className="flex items-center gap-3">
+          <img
+            src={user.imageUrl || "/assets/images/default-profile.jpg"}
+            alt="profile"
+            className="h-14 w-14 flex rounded-full"
+          />
+          <div className="flex-col flex">
+            <p className="body-bold">{user.name}</p>
+            <p className="small-regular text-light-3">@{user.username}</p>
           </div>
-        ) : (
-          <Link to={`/profile/${user.id}`} className="flex gap-3 items-center">
-            <img
-              src={user.imageUrl || "/assets/icons/profile-placeholder.svg"}
-              alt="profile"
-              className="h-14 w-14 rounded-full"
-            />
-            <div className="flex flex-col">
-              <p className="body-bold">{user.name}</p>
-              <p className="small-regular text-light-3">@{user.username}</p>
-            </div>
-          </Link>
-        )}
-
+        </Link>
         <ul className="flex flex-col gap-6">
           {sidebarLinks.map((link: INavLink) => {
-            const isActive = pathname === link.route;
-
+            const isActive = pathName === link.route;
+            console.log(pathName);
             return (
-              <li
-                key={link.label}
-                className={`leftsidebar-link group ${
-                  isActive && "bg-primary-500"
-                }`}>
+              <li key={link.label} className={`leftsidebar-link ${
+                isActive && "bg-primary-500"
+              }`}>
                 <NavLink
                   to={link.route}
-                  className="flex gap-4 items-center p-4">
-                  <img
-                    src={link.imgURL}
-                    alt={link.label}
-                    className={`group-hover:invert-white ${
-                      isActive && "invert-white"
-                    }`}
-                  />
+                  className="flex items-center gap-4 p-4"
+                >
+                  <img src={link.imgURL} alt={link.label} className=""/>
                   {link.label}
                 </NavLink>
               </li>
@@ -81,14 +62,6 @@ const LeftSidebar = () => {
           })}
         </ul>
       </div>
-
-      <Button
-        variant="ghost"
-        className="shad-button_ghost"
-        onClick={(e) => handleSignOut(e)}>
-        <img src="/assets/icons/logout.svg" alt="logout" />
-        <p className="small-medium lg:base-medium">Logout</p>
-      </Button>
     </nav>
   );
 };

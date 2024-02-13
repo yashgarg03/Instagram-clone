@@ -13,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { SignInValidation } from "@/lib/validation";
 import { z } from "zod";
-import { Loader } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -22,6 +21,7 @@ import {
 } from "@/lib/react-query/queriesAndMutations";
 import { useUserContext } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import Loader from "@/components/shared/Loader";
 
 const SignInForm = () => {
   const { toast } = useToast();
@@ -66,7 +66,7 @@ const SignInForm = () => {
   return (
     <Form {...form}>
       <div className="flex-center flex-col sm:w-420">
-        <img src="/public/assets/images/logo.svg" alt="logo" />
+        <img src="/assets/images/logo.svg" alt="logo" />
         <h2 className="h3-bold md:h2-bold pt-5">Log in to your account</h2>
         <p className="text-light-3 small-medium md:base-regular my-2">
           Welcome Back! Please enter login details.
@@ -103,7 +103,7 @@ const SignInForm = () => {
           />
           <Button type="submit" className="shad-button_primary">
             {isSigningIn ? (
-              <div className="flex">
+              <div className="flex-center gap-2">
                 <Loader /> Loading...
               </div>
             ) : (
