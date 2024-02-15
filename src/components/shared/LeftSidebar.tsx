@@ -4,14 +4,15 @@ import { useSignOutAccount } from "@/lib/react-query/queriesAndMutations";
 import { INavLink } from "@/types";
 import { useEffect } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Button } from "../ui";
 
 const LeftSidebar = () => {
-  const { pathName }: any = useLocation();
+
+  const location = useLocation();
+  const { pathname } = location;
   const { user }: any = useUserContext();
   const { mutate: signOut, isSuccess } = useSignOutAccount();
   const navigate = useNavigate();
-
-  console.log(user);
 
   useEffect(() => {
     if (isSuccess) {
@@ -20,8 +21,8 @@ const LeftSidebar = () => {
   }, [isSuccess]);
 
   return (
-    <nav className="leftSideBar">
-      <div className="flex flex-col gap-11 p-5">
+    <nav className="leftSideBar sidebar-hide">
+      <div className="flex flex-col gap-11 p-6">
         <Link to="/" className="flex gap-3 items-center">
           <img
             src="/assets/images/logo.svg"
@@ -44,17 +45,18 @@ const LeftSidebar = () => {
         </Link>
         <ul className="flex flex-col gap-6">
           {sidebarLinks.map((link: INavLink) => {
-            const isActive = pathName === link.route;
-            console.log(pathName);
+            const isActive = pathname === link.route;
             return (
-              <li key={link.label} className={`leftsidebar-link ${
+              <li key={link.label} className={`leftsidebar-link group ${
                 isActive && "bg-primary-500"
               }`}>
                 <NavLink
                   to={link.route}
                   className="flex items-center gap-4 p-4"
                 >
-                  <img src={link.imgURL} alt={link.label} className=""/>
+                  <img src={link.imgURL} alt={link.label} className={`group-hover:invert-white ${
+                    isActive && "invert-white"
+                  }`}/>
                   {link.label}
                 </NavLink>
               </li>
@@ -62,6 +64,14 @@ const LeftSidebar = () => {
           })}
         </ul>
       </div>
+      <Button variant="ghost" className="shad-button_ghost"
+        onClick={() => signOut()}>
+          <img src="/assets/icons/logout.svg" alt="" />
+          <p className="small-medium lg:base-medium">
+            Logout
+          </p>
+
+      </Button>
     </nav>
   );
 };
