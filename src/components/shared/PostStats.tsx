@@ -13,6 +13,7 @@ type PostStatsProps = {
   userId: string;
 };
 const PostStats = ({ post, userId }: PostStatsProps) => {
+  console.log(post);
   const likesList = post.likes?.map((user: Models.Document) => user.$id);
 
   const [likes, setLikes] = useState<string[]>(likesList);
