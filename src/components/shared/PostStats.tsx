@@ -1,89 +1,103 @@
-import {
-  useDeleteSavedPosts,
-  useGetCurrentUser,
-  useLikedPosts,
-  useSavePosts,
-} from "@/lib/react-query/queriesAndMutations";
-import { checkIsLiked } from "@/lib/utils";
 import { Models } from "appwrite";
-import React, { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+
+import { checkIsLiked } from "@/lib/utils";
+import {
+  useLikePost,
+  useSavePost,
+  useDeleteSavedPost,
+  useGetCurrentUser,
+} from "@/lib/react-query/queries";
 
 type PostStatsProps = {
   post: Models.Document;
   userId: string;
 };
+
 const PostStats = ({ post, userId }: PostStatsProps) => {
-  console.log(post);
+  const location = useLocation();
   const likesList = post.likes?.map((user: Models.Document) => user.$id);
 
   const [likes, setLikes] = useState<string[]>(likesList);
   const [isSaved, setIsSaved] = useState(false);
-  const { mutate: likePost } = useLikedPosts();
-  const { mutate: savePost } = useSavePosts();
-  const { mutate: deleteSavedPost } = useDeleteSavedPosts();
+
+  const { mutate: likePost } = useLikePost();
+  const { mutate: savePost } = useSavePost();
+  const { mutate: deleteSavePost } = useDeleteSavedPost();
 
   const { data: currentUser } = useGetCurrentUser();
 
-  const savedPostrecord = currentUser?.save.find(
+  const savedPostRecord = currentUser?.save.find(
     (record: Models.Document) => record.post.$id === post.$id
   );
 
   useEffect(() => {
-    setIsSaved(!!savedPostrecord);
-  }, [savedPostrecord]);
+    setIsSaved(!!savedPostRecord);
+  }, [currentUser]);
 
-  console.log(currentUser);
-
-  const handleLikedPost = (e: React.MouseEvent) => {
+  const handleLikePost = (
+    e: React.MouseEvent<HTMLImageElement, MouseEvent>
+  ) => {
     e.stopPropagation();
-    let newLikes = [...likes];
-    const hasLiked = newLikes.includes(userId);
 
-    if (hasLiked) {
-      newLikes = newLikes.filter((id: string) => id !== userId);
+    let likesArray = [...likes];
+
+    if (likesArray.includes(userId)) {
+      likesArray = likesArray.filter((Id) => Id !== userId);
     } else {
-      newLikes.push(userId);
+      likesArray.push(userId);
     }
 
-    setLikes(newLikes);
-    likePost({ postId: post.$id, likesArray: newLikes });
+    setLikes(likesArray);
+    likePost({ postId: post.$id, likesArray });
   };
 
-  const handleSavePost = (e: React.MouseEvent) => {
+  const handleSavePost = (
+    e: React.MouseEvent<HTMLImageElement, MouseEvent>
+  ) => {
     e.stopPropagation();
 
-    if (savedPostrecord) {
+    if (savedPostRecord) {
       setIsSaved(false);
-      deleteSavedPost(savedPostrecord.$id);
-    } else {
-      setIsSaved(true);
-      savePost({ postId: post.$id, userId });
+      return deleteSavePost(savedPostRecord.$id);
     }
+
+    savePost({ userId: userId, postId: post.$id });
+    setIsSaved(true);
   };
+
+  const containerStyles = location.pathname.startsWith("/profile")
+    ? "w-full"
+    : "";
 
   return (
-    <div className="flex justify-between item-center z-20">
+    <div
+      className={`flex justify-between items-center z-20 ${containerStyles}`}>
       <div className="flex gap-2 mr-5">
         <img
-          src={`/assets/icons/${
-            checkIsLiked(likes, userId) ? "liked" : "like"
-          }.svg`}
+          src={`${
+            checkIsLiked(likes, userId)
+              ? "/assets/icons/liked.svg"
+              : "/assets/icons/like.svg"
+          }`}
           alt="like"
-          height={20}
           width={20}
-          onClick={handleLikedPost}
+          height={20}
+          onClick={(e) => handleLikePost(e)}
           className="cursor-pointer"
         />
         <p className="small-medium lg:base-medium">{likes?.length}</p>
       </div>
+
       <div className="flex gap-2">
         <img
-          src={`/assets/icons/${isSaved ? "saved" : "save"}.svg`}
-          alt="like"
-          height={20}
+          src={isSaved ? "/assets/icons/saved.svg" : "/assets/icons/save.svg"}
+          alt="share"
           width={20}
-          onClick={handleSavePost}
+          height={20}
           className="cursor-pointer"
+          onClick={(e) => handleSavePost(e)}
         />
       </div>
     </div>

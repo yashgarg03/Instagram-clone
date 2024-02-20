@@ -277,13 +277,4 @@
   .shad-button_ghost {
     @apply flex gap-4 items-center justify-start hover:bg-transparent hover:text-white !important;
   }
-
-  @media (max-width: 768px) {
-    .sidebar-show {
-      display: block;
-    }
-    .sidebar-hide {
-      display: none;
-    }
-  }
 }
